@@ -1,0 +1,14 @@
+---
+layout: default
+---
+<h1>{{ page.title }}</h1>
+
+<p>
+  {{ page.date | date_to_string }}
+  {% assign author = site.categorys | where: 'short_name', page.category | first %}
+  {% if category %}
+    - <a href="{{ category.url }}">{{ category.name }}</a>
+  {% endif %}
+</p>
+
+{{ content }}
