@@ -16,7 +16,9 @@
 
 # 系统架构 #
 
-![diagram.jpg](https://github.com/wakengmeow/wakengmeow.github.io/blob/main/_posts/2021061701.JPG "diagram")
+![diagram.jpg](https://github.com/wakengmeow/monitoring/blob/a3da08e35a47461a38d027a8ba8ab26664f6a25a/2021061701.JPG "diagram")
+
+
 
 # 实施 #
 
