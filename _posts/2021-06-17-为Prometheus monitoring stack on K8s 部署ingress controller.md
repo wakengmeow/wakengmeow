@@ -16,43 +16,42 @@
 
 # 系统架构 #
 
-![diagram.jpg](https:// "diagram")
+![diagram.jpg](https://github.com/wakengmeow/wakengmeow.github.io/blob/main/_posts/2021061701.JPG "diagram")
 
 # 实施 #
 
-  ## 步骤 ##
+## 步骤 ##
 
-  1. 为方便测试，先部署一个prometheus的monitoring stack（yml），记得把prometheus，alertmanager和grafana部署成clusterip的service
-  2. 部署nginx的ingress controller，（yml），这个ingress controller其实就是在k8s上的一个pod里运行的nginx server，所以这个nginx也必须以service的形式发布出去，
-  因为这里nginx ingress controller service是提供对外服务的，所以service type必须是LoadBalancer或者nodeport。nodeport不考虑，因为需求就是不希望使用k8s的nodeip来访问
-  3. 为每一个服务部署一个ingress（yml），这个ingress的用处就是把每个服务的路由规则注入到ingress controller这个nginx server上来避免每次手动修改nginx.conf
+  1. 为方便测试，先部署一个prometheus的monitoring stack(https://github.com/wakengmeow/monitoring），记得把prometheus，alertmanager和grafana部署成clusterip的service
+  2. 部署nginx的ingress controller，（https://github.com/wakengmeow/monitoring），这个ingress controller其实就是在k8s上的一个pod里运行的nginx server，所以这个nginx也必须以service的形式发布出去，因为这里nginx ingress controller service是提供对外服务的，所以service type必须是LoadBalancer或者nodeport。nodeport不考虑，因为需求就是不希望使用k8s的nodeip来访问
+  3. 为每一个服务部署一个ingress（https://github.com/wakengmeow/monitoring），这个ingress的用处就是把每个服务的路由规则注入到ingress controller这个nginx server上来避免每次手动修改nginx.conf
 
-  ## yml上主要注意点 ##
+## yml上主要注意点 ##
   
   * ingress controller是可以监听整个k8s cluster的ingress的，也就是跨namespace的。所以如果希望只路由特定namespace的服务，可以用 k8s的annotations “kubernetes.io/ingress.class“来实现
 
   在ingress controller 部署deployment的时候要显式地定义如下：
     
-    `  containers:`
-    `   - name: nginx-ingress-controller`
-    `     image: quay.io/kubernetes-ingress-controller/ nginx-ingress-controller:0.30.0`
-    `      args:`
-    `        - /nginx-ingress-controller`
-    `        - --ingress-class=《your ingress controller class name》`
+`  containers:`
+`   - name: nginx-ingress-controller`
+`     image: quay.io/kubernetes-ingress-controller/ nginx-ingress-controller:0.30.0`
+`      args:`
+`        - /nginx-ingress-controller`
+`        - --ingress-class=《your ingress controller class name》`
      
 
     在ingress 部署时候要加入相应的配置：
-    `       apiVersion: networking.k8s.io/v1 ` 
-    `        kind: Ingress `
-    `        metadata: `
-    `            name: ingress-monitoring`
-    `            namespace: testing`
-    `        annotations:`
-    `            kubernetes.io/ingress.class:《your ingress controller class name》` 
+`       apiVersion: networking.k8s.io/v1 ` 
+`        kind: Ingress `
+`        metadata: `
+`            name: ingress-monitoring`
+`            namespace: testing`
+`        annotations:`
+`            kubernetes.io/ingress.class:《your ingress controller class name》` 
     
 
 
-    ## 接下来说坑 ##
+## 接下来说坑 ##
     
     我们想做的：
         # 通过 http://loadbalancerip/prometheus 访问prometheus的web       
@@ -69,7 +68,7 @@
     同时用多path，正则来redirect也是nginx的概念，实现上应该straightforward。事实是一整个工作日都没有调通，作为一个配置类的task的用时超出太多了。
 
 
-    ## 解决方法 ##
+## 解决方法 ##
     
      1. 在k8s github发现issue https://github.com/kubernetes/ingress-nginx/issues/6437，确认了新旧版本的变化 
         在issue conversation里找到 ingress conformance testing 的test case https://aledbf.github.io/ingress-conformance-sample/features/path-rules.html
