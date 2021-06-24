@@ -33,13 +33,14 @@
   * ingress controller是可以监听整个k8s cluster的ingress的，也就是跨namespace的。所以如果希望只路由特定namespace的服务，可以用 k8s的annotations “kubernetes.io/ingress.class“来实现
 
   在ingress controller 部署deployment的时候要显式地定义如下：
-    
-  `  containers:`
-  `   - name: nginx-ingress-controller`
-  `     image: quay.io/kubernetes-ingress-controller/ nginx-ingress-controller:0.30.0`
-  `      args:`
-  `        - /nginx-ingress-controller`
-  `        - --ingress-class=《your ingress controller class name》`
+  ```  
+    containers:
+     - name: nginx-ingress-controller
+       image: quay.io/kubernetes-ingress-controller/ nginx-ingress-controller:0.30.0
+        args:
+          - /nginx-ingress-controller
+          - --ingress-class=《your ingress controller class name》
+   ```
      
 
   在ingress 部署时候要加入相应的配置：
