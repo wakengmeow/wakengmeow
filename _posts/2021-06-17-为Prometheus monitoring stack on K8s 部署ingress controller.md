@@ -44,15 +44,16 @@
      
 
   在ingress 部署时候要加入相应的配置：
-  `       apiVersion: networking.k8s.io/v1 ` 
-  `        kind: Ingress `
-  `        metadata: `
-  `            name: ingress-monitoring`
-  `            namespace: testing`
-  `        annotations:`
-  `            kubernetes.io/ingress.class:《your ingress controller class name》` 
+  ```
+         apiVersion: networking.k8s.io/v1  
+          kind: Ingress 
+          metadata: 
+              name: ingress-monitoring
+              namespace: testing
+          annotations:
+              kubernetes.io/ingress.class:《your ingress controller class name》 
     
-
+  ```
 
 ## 接下来说坑 ##
     
