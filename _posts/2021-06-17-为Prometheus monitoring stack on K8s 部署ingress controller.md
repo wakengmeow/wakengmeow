@@ -16,7 +16,7 @@
 
 # 系统架构 #
 
-![diagram.jpg](https://github.com/wakengmeow/monitoring/blob/a3da08e35a47461a38d027a8ba8ab26664f6a25a/2021061701.JPG "diagram")
+![](2021061701.JPG)
 
 
 
@@ -34,55 +34,55 @@
 
   在ingress controller 部署deployment的时候要显式地定义如下：
     
-`  containers:`
-`   - name: nginx-ingress-controller`
-`     image: quay.io/kubernetes-ingress-controller/ nginx-ingress-controller:0.30.0`
-`      args:`
-`        - /nginx-ingress-controller`
-`        - --ingress-class=《your ingress controller class name》`
+  `  containers:`
+  `   - name: nginx-ingress-controller`
+  `     image: quay.io/kubernetes-ingress-controller/ nginx-ingress-controller:0.30.0`
+  `      args:`
+  `        - /nginx-ingress-controller`
+  `        - --ingress-class=《your ingress controller class name》`
      
 
-    在ingress 部署时候要加入相应的配置：
-`       apiVersion: networking.k8s.io/v1 ` 
-`        kind: Ingress `
-`        metadata: `
-`            name: ingress-monitoring`
-`            namespace: testing`
-`        annotations:`
-`            kubernetes.io/ingress.class:《your ingress controller class name》` 
+  在ingress 部署时候要加入相应的配置：
+  `       apiVersion: networking.k8s.io/v1 ` 
+  `        kind: Ingress `
+  `        metadata: `
+  `            name: ingress-monitoring`
+  `            namespace: testing`
+  `        annotations:`
+  `            kubernetes.io/ingress.class:《your ingress controller class name》` 
     
 
 
 ## 接下来说坑 ##
     
-    我们想做的：
-        # 通过 http://loadbalancerip/prometheus 访问prometheus的web       
-        # 通过 http://loadbalancerip/alertmanager 访问alertmanager的web  
-        * 通过 http://loadbalancerip/grafana 访问grafana的web
+我们想做的：
+  * 通过 http://loadbalancerip/prometheus 访问prometheus的web       
+  * 通过 http://loadbalancerip/alertmanager 访问alertmanager的web  
+  * 通过 http://loadbalancerip/grafana 访问grafana的web
     
-    看上去也确实简单，狗狗小冰小度回答都是用 k8s的annotations 来实现，类似如下这种： 
+看上去也确实简单，狗狗小冰小度回答都是用 k8s的annotations 来实现，类似如下这种： 
     
-    ```
-      nginx.ingress.kubernetes.io/use-regex: "true"
-      nginx.ingress.kubernetes.io/rewrite-target: /$1
-    ```
+`  nginx.ingress.kubernetes.io/use-regex: "true" `
+`  nginx.ingress.kubernetes.io/rewrite-target: /$1 `
+      
 
-    同时用多path，正则来redirect也是nginx的概念，实现上应该straightforward。事实是一整个工作日都没有调通，作为一个配置类的task的用时超出太多了。
+同时,用多path，正则来redirect也是nginx的概念，实现上应该straightforward。事实是一整个工作日都没有调通，作为一个配置类的task的用时超出太多了。
 
 
 ## 解决方法 ##
     
-     1. 在k8s github发现issue https://github.com/kubernetes/ingress-nginx/issues/6437，确认了新旧版本的变化 
-        在issue conversation里找到 ingress conformance testing 的test case https://aledbf.github.io/ingress-conformance-sample/features/path-rules.html
-        据此，去掉之前所有的rewarite啦正则啦，改用最简单的path 路由
+  1. 在k8s github发现issue https://github.com/kubernetes/ingress-nginx/issues/6437，确认了新旧版本的变化 
+        
+      在issue conversation里找到 ingress conformance testing 的test case https://aledbf.github.io/ingress-conformance-sample/features/path-rules.html
+      据此，去掉之前所有的rewarite啦正则啦，改用最简单的path 路由
 
-     2. 之后测试显示路由没有问题了，但是backend service的loading有问题，这题大家都会， 用--web.external-url，社区这方面的issue也有不少  
-        https://github.com/prometheus/prometheus/issues/4925。 但是这个目前只有prometheus和alertmanager支持。Grafana则需要修改grafana.ini.
-        不管从时间和以后维护来讲，都不值得，考虑到grafana web 是最频繁被使用的，所以最后改成以下的实现来躲开ini文件的修改：  
+  2. 之后测试显示路由没有问题了，但是backend service的loading有问题，这题大家都会， 用--web.external-url，社区这方面的issue也有不少  
+      https://github.com/prometheus/prometheus/issues/4925。 但是这个目前只有prometheus和alertmanager支持。Grafana则需要修改grafana.ini.
+      从时间和以后维护来讲，都不值得用configmap去改ini，而且考虑到grafana web 是最频繁被使用的，所以最后改成以下的实现来躲开ini文件的修改：  
 
-        # 通过 http://loadbalancerip/prometheus 访问prometheus的web       
-        # 通过 http://loadbalancerip/alertmanager 访问alertmanager的web  
-        # 通过 http://loadbalancerip/ 访问grafana的web
+        * 通过 http://loadbalancerip/prometheus 访问prometheus的web       
+        * 通过 http://loadbalancerip/alertmanager 访问alertmanager的web  
+        * 通过 http://loadbalancerip/ 访问grafana的web
 
 
 # 总结 #
